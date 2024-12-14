@@ -2,5 +2,5 @@ import 'package:flutter/material.dart';
 import 'app.dart';
 
 void main() {
-  runApp(const AssetManagementApp());
+  runApp(const App());
 }
