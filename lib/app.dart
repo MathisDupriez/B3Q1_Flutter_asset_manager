@@ -27,7 +27,7 @@ class App extends StatelessWidget {
           create: (_) => LocationBloc(locationRepository),
         ),
         BlocProvider(
-          create: (_) => AssetBloc(), // Ajouter le bloc des assets
+          create: (_) => AssetBloc(locationRepository: locationRepository), // Ajouter le bloc des assets
         ),
       ],
       child: MaterialApp(

@@ -14,28 +14,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const LoggingIn());
 
       try {
-  // Tentative de connexion via Firebase Auth
-  final userCredential = await authRepository.signIn(
-    email: event.email,
-    password: event.password,
-  );
+        // Tentative de connexion via Firebase Auth
+        final userCredential = await authRepository.signIn(
+          email: event.email,
+          password: event.password,
+        );
 
-  // Vérification explicite si user est non-null
-  var firebaseUser = userCredential;
-  if (firebaseUser != null) {
-    // Connexion réussie, créer un utilisateur
-    final user = User(
-      firebaseUser.email ?? '',
-      event.password, // Attention : ne jamais stocker de mot de passe en texte clair en production
-    );
-    emit(LoggedIn(user));
-  } else {
-    emit(LoginError("Échec de la connexion : utilisateur non trouvé."));
-  }
-} catch (e) {
-  // En cas d'erreur, émettre un état avec le message d'erreur
-  emit(LoginError(e.toString()));
-}
+        // Vérification explicite si user est non-null
+        var firebaseUser = userCredential;
+        if (firebaseUser != null) {
+          // Connexion réussie, créer un utilisateur
+          final user = User(
+            firebaseUser.email ?? '',
+            event.password, // Attention : ne jamais stocker de mot de passe en texte clair en production
+          );
+          emit(LoggedIn(user));
+        } else {
+          emit(LoginError("Échec de la connexion : utilisateur non trouvé."));
+        }
+      } catch (e) {
+        // En cas d'erreur, émettre un état avec le message d'erreur
+        emit(LoginError(e.toString()));
+      }
     });
 
     // Gestion de l'événement LogoutEvent

@@ -165,8 +165,8 @@ class LocationCard extends StatelessWidget {
             MaterialPageRoute(
               builder: (_) => BlocProvider.value(
                 value: BlocProvider.of<LocationBloc>(context),
-                child: BlocProvider(
-                  create: (_) => AssetBloc()..add(SetAssetEvent(location.assets)),
+                child: BlocProvider.value(
+                  value: BlocProvider.of<AssetBloc>(context), // Utilisation du bloc existant
                   child: const AssetScreen(),
                 ),
               ),

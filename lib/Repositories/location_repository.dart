@@ -33,6 +33,20 @@ class LocationRepository {
       debugPrint('Error updating locations: $e');
     }
   }
+  updateLocationsWithoutAdding() async {
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+      final snapshot = await FirebaseFirestore.instance.collection('locations').get();
+      for (var doc in snapshot.docs) {
+        final location = Location.fromMap(doc.data(), doc.id);
+        final locationRef = FirebaseFirestore.instance.collection('locations').doc(location.id.toString());
+        batch.set(locationRef, location.toMap());
+      }
+      await batch.commit();
+    } catch (e) {
+      debugPrint('Error updating locations: $e');
+    }
+  }
 
   // Ajoute une nouvelle location dans Firestore
   Future<void> addLocation(Location location) async {

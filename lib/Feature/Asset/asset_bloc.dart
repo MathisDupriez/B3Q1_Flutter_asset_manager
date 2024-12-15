@@ -2,12 +2,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../Model/asset.dart';
 import 'asset_event.dart';
 import 'asset_state.dart';
+import '../../Repositories/location_repository.dart';
 
 class AssetBloc extends Bloc<AssetEvent, AssetState> {
   // Liste des assets gérée directement dans le bloc
   List<Asset> assets = [];
-
-  AssetBloc() : super(AssetInitial()) {
+  LocationRepository locationRepository;
+  AssetBloc({required this.locationRepository}) : super(AssetInitial()) {
     on<SetAssetEvent>((event, emit) {
       assets = event.assets; // Définir la liste des assets
       emit(AssetsLoaded(List.of(assets))); // Émettre une copie de la liste des assets
@@ -21,6 +22,7 @@ class AssetBloc extends Bloc<AssetEvent, AssetState> {
     // Ajout d'un nouvel asset
     on<AddAssetEvent>((event, emit) {
       assets.add(event.asset); // Ajouter l'asset
+      locationRepository.updateLocationsWithoutAdding(); // Mettre à jour les locations sans ajouter de nouvelles locations
       emit(AssetsLoaded(List.of(assets))); // Réémettre la liste mise à jour
     });
 
