@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../Repositories/locationRepository.dart';
-import 'locationEvent.dart';
-import 'locationState.dart';
+import '../../Repositories/location_repository.dart';
+import 'location_event.dart';
+import 'location_state.dart';
 import 'package:flutter/material.dart'; // Import to use debugPrint
 
 class LocationBloc extends Bloc<LocationEvent, LocationState> {
@@ -62,6 +62,16 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     on<UpdateLocation>((event, emit) async {
       emit(LocationLoading()); // Indiquer le chargement
       debugPrint('LocBloc event triggered for location: ${event.location}');
+      try {
+        debugPrint('Attempting to update location: ${event.location}');
+        await locationRepository.updateLocation(event.location);
+        final updatedLocations = await locationRepository.getLocations();
+        debugPrint('Updated locations after update: $updatedLocations');
+        emit(LocationUpdated(updatedLocations)); // État mis à jour
+      } catch (e) {
+        debugPrint('Error updating location: $e');
+        emit(LocationError("Failed to update location: $e")); // En cas d'erreur
+      }
     });
   }
 }

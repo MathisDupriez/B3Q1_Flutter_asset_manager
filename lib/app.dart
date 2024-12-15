@@ -1,11 +1,14 @@
-import 'package:b3q1_flutter_project_asset_manager/Feature/auth/authScreen.dart';
-import 'package:b3q1_flutter_project_asset_manager/Repositories/locationRepository.dart';
+import 'package:b3q1_flutter_project_asset_manager/Feature/Auth/auth_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'Feature/auth/authBloc.dart';
-import 'Feature/auth/authState.dart';
-import 'Feature/location/locationScreen.dart';
-import 'Feature/location/locationBloc.dart';
+import 'Feature/Auth/auth_bloc.dart';
+import 'Feature/Auth/auth_state.dart';
+import 'Feature/Location/location_screen.dart';
+import 'Feature/Location/location_bloc.dart';
+import 'Feature/Asset/asset_bloc.dart'; 
+
+import 'Repositories/location_repository.dart';
+import 'Repositories/auth_repository.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -13,14 +16,18 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     LocationRepository locationRepository = LocationRepository();
+    AuthRepository authRepository = AuthRepository();
 
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => AuthBloc(),
+          create: (_) => AuthBloc(authRepository : authRepository),
         ),
         BlocProvider(
           create: (_) => LocationBloc(locationRepository),
+        ),
+        BlocProvider(
+          create: (_) => AssetBloc(), // Ajouter le bloc des assets
         ),
       ],
       child: MaterialApp(

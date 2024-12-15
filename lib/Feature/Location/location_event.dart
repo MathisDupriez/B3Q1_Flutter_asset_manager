@@ -12,7 +12,7 @@ class AddLocation extends LocationEvent {
 }
 
 class RemoveLocation extends LocationEvent {
-  final int id; // Identifiant pour supprimer une location.
+  final String id; // Identifiant pour supprimer une location.
   RemoveLocation(this.id);
 }
 
