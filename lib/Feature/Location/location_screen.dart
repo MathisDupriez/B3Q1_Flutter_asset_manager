@@ -44,6 +44,14 @@ class LocationScreen extends StatelessWidget {
 
                 if (state is LocationUpdated) {
                   final locations = state.locations;
+                  if(state.locations.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No locations available',
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                      ),
+                    );
+                  }
                   return ListView.builder(
                     itemCount: locations.length,
                     itemBuilder: (context, index) {
@@ -159,17 +167,11 @@ class LocationCard extends StatelessWidget {
           style: const TextStyle(fontSize: 14, color: Colors.grey),
         ),
         onTap: () {
-          // Naviguer vers AssetScreen avec les assets de cette location
+          context.read<AssetBloc>().add(SetAssetEvent(location.assets, location));
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => BlocProvider.value(
-                value: BlocProvider.of<LocationBloc>(context),
-                child: BlocProvider.value(
-                  value: BlocProvider.of<AssetBloc>(context), // Utilisation du bloc existant
-                  child: const AssetScreen(),
-                ),
-              ),
+              builder: (_) => const AssetScreen(),
             ),
           );
         },

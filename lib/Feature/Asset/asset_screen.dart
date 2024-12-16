@@ -25,7 +25,7 @@ class AssetScreen extends StatelessWidget {
                 if (state is AssetInitial) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is AssetsLoaded) {
-                  final assets = state.assets;
+                  final assets = state.currentAssets;
                   return ListView.builder(
                     itemCount: assets.length,
                     itemBuilder: (context, index) {
@@ -34,7 +34,20 @@ class AssetScreen extends StatelessWidget {
                         return AssetCard(
                           asset: asset,
                           onTap: () {
-                            context.read<AssetBloc>().add(SetAssetEvent(asset.assets));
+                            // Ajouter des événements avant de naviguer vers AssetScreen
+                            context.read<AssetBloc>().add(goDownEvent(asset.id)); // Action pour descendre
+                            context.read<AssetBloc>().add(LoadAssetsEvent()); // Charger les assets
+
+                            // Naviguer vers AssetScreen avec les assets de cette location
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AssetScreen(),
+                              ),
+                            ).then((_) {
+                              context.read<AssetBloc>().add(goUpEvent()); // Action pour remonter
+                              context.read<AssetBloc>().add(LoadAssetsEvent());
+                            });
                           },
                         );
                       } else {

@@ -2,10 +2,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../Repositories/location_repository.dart';
 import 'location_event.dart';
 import 'location_state.dart';
+import '../../Model/location.dart';
 import 'package:flutter/material.dart'; // Import to use debugPrint
 
 class LocationBloc extends Bloc<LocationEvent, LocationState> {
   final LocationRepository locationRepository;
+  late Location CurrentLocation;
 
   LocationBloc(this.locationRepository) : super(LocationLoading()) {
     // Charger les locations depuis le repository

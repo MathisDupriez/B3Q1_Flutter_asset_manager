@@ -38,7 +38,7 @@ class App extends StatelessWidget {
               return const LocationScreen();
             } else {
               // Si l'utilisateur n'est pas authentifié, afficher le AuthScreen
-              return const AuthScreen();
+              return const LocationScreen();
             }
           },
         ),
