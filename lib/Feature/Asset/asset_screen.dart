@@ -61,47 +61,54 @@ class AssetScreen extends StatelessWidget {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                _showAddAssetDialog(context);
-              },
-              child: const Text('Ajouter un Asset'),
-            ),
-          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showAddAssetDialog(context);  // Ouvre la popup pour ajouter une location
+        },
+        backgroundColor: Colors.blueAccent,
+        tooltip: 'Add Location',
+        child: const Icon(Icons.add),
       ),
     );
   }
 
   /// Boîte de dialogue pour ajouter un asset
   void _showAddAssetDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final descriptionController = TextEditingController();
-    String selectedAssetType = 'FileAsset'; // Type par défaut
+  final nameController = TextEditingController();
+  final descriptionController = TextEditingController();
+  final pathController = TextEditingController();
+  String selectedAssetType = 'FileAsset'; // Type par défaut
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return BlocProvider.value(
-          value: BlocProvider.of<AssetBloc>(context), // Récupère le bloc depuis le parent
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return AlertDialog(
-                title: const Text('Ajouter un Asset'),
-                content: Column(
+  showDialog(
+    context: context,
+    builder: (context) {
+      return BlocProvider.value(
+        value: BlocProvider.of<AssetBloc>(context), // Récupère le bloc depuis le parent
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Ajouter un Asset'),
+              content: SingleChildScrollView(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Champ pour le nom
                     TextField(
                       controller: nameController,
                       decoration: const InputDecoration(labelText: 'Nom'),
                     ),
+                    const SizedBox(height: 10),
+
+                    // Champ pour la description
                     TextField(
                       controller: descriptionController,
                       decoration: const InputDecoration(labelText: 'Description'),
                     ),
                     const SizedBox(height: 10),
+
+                    // Dropdown pour sélectionner le type d'asset
                     DropdownButton<String>(
                       value: selectedAssetType,
                       items: const [
@@ -124,63 +131,87 @@ class AssetScreen extends StatelessWidget {
                         });
                       },
                     ),
+
+                    const SizedBox(height: 10),
+
+                    // Champ pour le path (affiché uniquement si FileAsset ou AppAsset est sélectionné)
+                    if (selectedAssetType != 'DirectoryAsset')
+                      TextField(
+                        controller: pathController,
+                        decoration: const InputDecoration(labelText: 'Chemin (Path)'),
+                      ),
                   ],
                 ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Annuler'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (nameController.text.isEmpty ||
-                          descriptionController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Veuillez remplir tous les champs')),
+              ),
+              actions: [
+                // Bouton Annuler
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Annuler'),
+                ),
+
+                // Bouton Ajouter
+                ElevatedButton(
+                  onPressed: () {
+                    // Vérifie que les champs requis sont remplis
+                    if (nameController.text.isEmpty ||
+                        descriptionController.text.isEmpty ||
+                        (selectedAssetType != 'DirectoryAsset' && pathController.text.isEmpty)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Veuillez remplir tous les champs requis')),
+                      );
+                      return;
+                    }
+
+                    // Crée un nouvel asset en fonction du type sélectionné
+                    Asset newAsset;
+                    switch (selectedAssetType) {
+                      case 'AppAsset':
+                        newAsset = AppAsset(
+                          DateTime.now().millisecondsSinceEpoch,
+                          nameController.text,
+                          descriptionController.text,
+                          pathController.text, // Utilise le chemin fourni
                         );
-                        return;
-                      }
-                      Asset newAsset;
-                      switch (selectedAssetType) {
-                        case 'AppAsset':
-                          newAsset = AppAsset(
-                            DateTime.now().millisecondsSinceEpoch,
-                            nameController.text,
-                            descriptionController.text,
-                            'https://example.com/app', // URL fictive
-                          );
-                          break;
-                        case 'DirectoryAsset':
-                          newAsset = DirectoryAsset(
-                            DateTime.now().millisecondsSinceEpoch,
-                            nameController.text,
-                            descriptionController.text,
-                            [],
-                          );
-                          break;
-                        default:
-                          newAsset = FileAsset(
-                            DateTime.now().millisecondsSinceEpoch,
-                            nameController.text,
-                            descriptionController.text,
-                            'https://example.com/file.pdf', // URL fictive
-                          );
-                          break;
-                      }
-                      context.read<AssetBloc>().add(AddAssetEvent(newAsset));
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Ajouter'),
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
+                        break;
+                      case 'DirectoryAsset':
+                        newAsset = DirectoryAsset(
+                          DateTime.now().millisecondsSinceEpoch,
+                          nameController.text,
+                          descriptionController.text,
+                          [],
+                        );
+                        break;
+                      default: // FileAsset
+                        newAsset = FileAsset(
+                          DateTime.now().millisecondsSinceEpoch,
+                          nameController.text,
+                          descriptionController.text,
+                          pathController.text, // Utilise le chemin fourni
+                        );
+                        break;
+                    }
+
+                    // Ajoute l'asset via le bloc
+                    context.read<AssetBloc>().add(AddAssetEvent(newAsset));
+
+                    // Ferme la boîte de dialogue
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Ajouter'),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    },
+  );
 }
+
+}
+
+
 
 class AssetCard extends StatelessWidget {
   final Asset asset;
@@ -190,16 +221,172 @@ class AssetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Définir les styles pour réutilisation
+    const TextStyle titleStyle = TextStyle(
+      fontSize: 18.0,
+      fontWeight: FontWeight.bold,
+      color: Colors.black87,
+    );
+
+    const TextStyle descriptionStyle = TextStyle(
+      fontSize: 14.0,
+      color: Colors.black54,
+    );
+
+    const TextStyle pathStyle = TextStyle(
+      fontSize: 12.0,
+      color: Colors.grey,
+      overflow: TextOverflow.ellipsis,
+    );
+
+    // Déterminer l'icône selon le type d'asset
+    IconData iconData;
+    if (asset is DirectoryAsset) {
+      iconData = Icons.folder;
+    } else if (asset is AppAsset) {
+      iconData = Icons.apps;
+    } else {
+      iconData = Icons.insert_drive_file;
+    }
+
     return Card(
-      margin: const EdgeInsets.all(8.0),
-      child: ListTile(
-        title: Text(asset.name),
-        subtitle: Text(asset.description),
-        trailing: onTap != null
-            ? const Icon(Icons.arrow_forward)
-            : null, 
-        onTap: onTap,
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+      elevation: 4, // Ombrage légèrement plus prononcé
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0), // Coins arrondis
       ),
+      child: InkWell(
+        onTap: onTap, // Ajouter une interaction tactile pour toute la carte
+        borderRadius: BorderRadius.circular(10.0),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              // Icône à gauche
+              Icon(
+                iconData,
+                size: 40.0,
+                color: asset is DirectoryAsset
+                    ? Colors.amber
+                    : (asset is AppAsset ? Colors.blue : Colors.grey),
+              ),
+              const SizedBox(width: 16.0),
+
+              // Informations de l'asset
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Titre
+                    Text(
+                      asset.name,
+                      style: titleStyle,
+                    ),
+                    const SizedBox(height: 4.0),
+
+                    // Description
+                    Text(
+                      asset.description,
+                      style: descriptionStyle,
+                    ),
+                    if (asset is FileAsset || asset is AppAsset)
+                      const SizedBox(height: 4.0),
+
+                    // Chemin (affiché uniquement pour les fichiers et applications)
+                    if (asset is FileAsset || asset is AppAsset)
+                      Text(
+                        (asset as dynamic).path, // Accès dynamique au chemin
+                        style: pathStyle,
+                      ),
+                  ],
+                ),
+              ),
+
+              // Boutons d'action (Update, Delete, et flèche si applicable)
+              Row(
+                children: [
+                  // Bouton Update
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    color: Colors.blue,
+                    tooltip: "Modifier", // Accessibilité
+                    onPressed: () {
+                      // Logique pour modifier l'asset
+                      _showEditAssetDialog(context, asset);
+                    },
+                  ),
+
+                  // Bouton Delete
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    color: Colors.red,
+                    tooltip: "Supprimer", // Accessibilité
+                    onPressed: () {
+                      context
+                          .read<AssetBloc>()
+                          .add(DeleteAssetEvent(asset.id));
+                    },
+                  ),
+
+                  // Bouton flèche uniquement pour les DirectoryAsset
+                  if (asset is DirectoryAsset && onTap != null)
+                    IconButton(
+                      icon: const Icon(Icons.arrow_forward),
+                      color: Colors.grey,
+                      tooltip: "Ouvrir le dossier", // Accessibilité
+                      onPressed: onTap,
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Logique pour afficher une boîte de dialogue lors de l'édition
+  void _showEditAssetDialog(BuildContext context, Asset asset) {
+    final nameController = TextEditingController(text: asset.name);
+    final descriptionController = TextEditingController(text: asset.description);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Modifier l\'asset'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Champ pour le nom
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Nom'),
+              ),
+              const SizedBox(height: 10),
+
+              // Champ pour la description
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // MODIFIER ICI LEVENT DE MOFICIATION
+                Navigator.of(context).pop();
+              },
+              child: const Text('Mettre à jour'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

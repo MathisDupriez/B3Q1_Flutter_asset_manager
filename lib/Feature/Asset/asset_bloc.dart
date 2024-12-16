@@ -13,6 +13,7 @@ class AssetBloc extends Bloc<AssetEvent, AssetState> {
   late Location currentLocation;
   var idParent = 0;
   var lastIdParent = 0;
+  List<int> idParents = [];
   
   AssetBloc({required this.locationRepository}) : super(AssetInitial()) {
     on<SetAssetEvent>((event, emit) {
@@ -72,12 +73,13 @@ class AssetBloc extends Bloc<AssetEvent, AssetState> {
     });
 
     on<goDownEvent>((event, emit) {
-      lastIdParent = idParent;
+      idParents.add(idParent);
       idParent = event.id;
     });
 
     on<goUpEvent>((event, emit) {
-      idParent = lastIdParent;
+      idParent = idParents.last;
+      idParents.removeLast();
     });
   }
 }
